@@ -1,0 +1,12 @@
+.floating-box {
+    position: fixed;
+    height: fit-content;
+    padding: 0.5em;
+    width: 40%;
+    text-align: center;
+    bottom: 10%;
+    left: 50%;
+    transform: translate(-50%, 0);
+    background-color: grey;
+
+}
