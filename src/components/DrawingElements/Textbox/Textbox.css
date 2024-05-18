@@ -1,0 +1,23 @@
+.textbox-shape {
+	position: absolute;
+	font-size: 15px;
+	display: "flex";
+	align-items: "center";
+	justify-content: "center";
+}
+
+.textbox-shape > textarea {
+	text-align: center;
+	width: -webkit-fill-available;
+	border: none;
+	background-color: transparent;
+	resize: none;
+	overflow: hidden;
+	top: 0%;
+	left: 0%;
+	height: 100%;
+}
+
+.textbox-shape > textarea:focus-visible {
+	outline: none;
+}

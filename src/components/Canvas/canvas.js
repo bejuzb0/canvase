@@ -1,94 +1,189 @@
-import React, { useEffect, useState } from 'react'
-import './canvas.css'
-import ElementFactory from '../DrawingElements/ElementFactory/ElementFactory';
-import FloatingToolBox from '../FloatingToolBox/floatingToolBox';
-
-
-
+import React, { useState, useRef } from "react";
+import "./canvas.css";
+import ElementFactory from "../DrawingElements/ElementFactory/ElementFactory";
+import FloatingToolBox from "../FloatingToolBox/floatingToolBox";
+import useHandleZoom from "../../hooks/useHandleZoom";
+import useHandleScrollTranslation from "../../hooks/useHandleScrollTranslation";
+import useMouseTracking from "../../hooks/useMouseTracking";
+import useObjectRenderAndDelete from "../../hooks/useObjectRenderAndDelete";
 
 function Canvas() {
-  const [drawElements, setDrawElements] = useState([]);
-  const [recordPositions, setRecordPositions] = useState(false);
-  const [currentElementType, setCurrentElementType] = useState("RECTANGLE");
-  const [drawElementBoxCoord, setDrawElementBoxCoord] = useState({});
-  const [zoom, setZoom] = useState(1.0);
-  const [xTranslate, setXTranslate] = useState(50)
-  const [yTranslate, setYTranslate] = useState(0)
-  useEffect(()=> {
-    if(drawElementBoxCoord.endX != undefined) {
-      console.log(drawElementBoxCoord, "in useEffect")
-      setDrawElements(prevState => {
-        return [...prevState, {type:currentElementType, coords: drawElementBoxCoord, text: ""}]
-      });
-    }
-  }, [drawElementBoxCoord])
+	const [drawElements, setDrawElements] = useState([]);
+	const [recordPositions, setRecordPositions] = useState(false);
+	const [currentElementType, setCurrentElementType] = useState("RECTANGLE");
+	const [drawElementBoxCoord, setDrawElementBoxCoord] = useState({});
 
-  const rectangleBtnClick = () => {
-    console.log("REcctange clicked")
-    setRecordPositions(true);
-    setCurrentElementType("RECTANGLE");
-    setDrawElementBoxCoord({})
-  }
+	const canvasRef = useRef(null);
+	const mousePos = useMouseTracking(canvasRef);
 
-  const textBoxBtnClick = () => {
-    console.log("Textbox clicked")
-    setRecordPositions(true);
-    setCurrentElementType("TEXTBOX");
-  } 
-  const onDragStartFn = (event) => {
-    console.log("Mouse down")
-    if(recordPositions) {
-      const bounds = event.target.getBoundingClientRect();
-      const x = event.clientX - bounds.left;
-      const y = event.clientY - bounds.top;
-      setDrawElementBoxCoord(prevState => {
-        return {...prevState, startX : x, startY: y};
-      });
-    }
-  }
+	const [zoom, zoomCenter] = useHandleZoom(mousePos);
+	const [xTranslate, yTranslate] = useHandleScrollTranslation();
 
-  const handleSroll = (event) => {
-    console.log(event)
+	useObjectRenderAndDelete(
+		setDrawElements,
+		currentElementType,
+		drawElementBoxCoord
+	);
 
-  }
-  
-  const onDragEndFn = (event) => {
-    //setRecordPositions(false)
-    if(recordPositions) {
-      const bounds = event.target.getBoundingClientRect();
-      const x = event.clientX - bounds.left;
-      const y = event.clientY - bounds.top;
-      console.log(x, y, "mouse up")
-      setDrawElementBoxCoord(prevState => {
-        let coordTemp = Object.assign({}, prevState)
-        console.log("prev state", coordTemp)
+	const updateTextCallbackFn = (elementIndex, text) => {
+		setDrawElements((prevState) => {
+			let temp = [...prevState];
+			temp[elementIndex].text = text;
+			return temp;
+		});
+	};
 
-        coordTemp.endX = x;
-        coordTemp.endY = y;
-        console.log("After set", coordTemp)
-        return coordTemp;
-        
-      });
-      setRecordPositions(false)
-    
-      
-    }
-    //console.log(drawElements)
-  }
+	const selectObjectCallBackFn = (data) => {
+		setDrawElements((prevState) => {
+			let temp = [...prevState];
+			temp.forEach((element) => {
+				element.isSelected = false;
+			});
+			temp[data].isSelected = true;
+			return temp;
+		});
 
-  
-  return (
-    <div>
-      <div className='canvas' onMouseDown={(e) => onDragStartFn(e)} onMouseUp={(e) => onDragEndFn(e)} onWheel={(e) => handleSroll(e)}>
-        {
-        drawElements.map((element, index) => {
-          return <ElementFactory key={index} props={element} zoom={zoom} xTranslate = {xTranslate} yTranslate= {yTranslate}/>
-        })
-        }
-      </div>
-      <FloatingToolBox rectangleCallback={rectangleBtnClick} textBoxCallback={textBoxBtnClick}/>
-    </div>
-  )
+		setDrawElements((prevState) => {
+			let temp = [...prevState];
+			console.log("select callback", temp);
+			const removeIndex = temp.findIndex(
+				(element) =>
+					element.type === "TEXTBOX" &&
+					element.isSelected === false &&
+					element.text === ""
+			);
+			if (removeIndex > -1) temp.splice(removeIndex, 1);
+			return temp;
+		});
+	};
+
+	const onDrawingStartCallbackFn = (event) => {
+		//event.preventDefault();
+		if (recordPositions) {
+			// Deselect if anything is already selected
+			setDrawElements((prevState) => {
+				let temp = [...prevState];
+				const selectedIdx = temp.findIndex(
+					(element) => element.isSelected
+				);
+				if (selectedIdx > -1) temp[selectedIdx].isSelected = false;
+				return temp;
+			});
+
+			let x = mousePos.x;
+			let y = mousePos.y;
+			x = x / zoom;
+			y = y / zoom;
+			setDrawElementBoxCoord((prevState) => {
+				return {
+					...prevState,
+					startX: x - xTranslate,
+					startY: y - yTranslate,
+				};
+			});
+		}
+	};
+
+	const onDrawingEndCallbackFn = (event) => {
+		event.preventDefault();
+		if (recordPositions) {
+			let x = mousePos.x;
+			let y = mousePos.y;
+			x = x / zoom;
+			y = y / zoom;
+
+			if (currentElementType === "TEXTBOX") {
+				y = drawElementBoxCoord.startY + 30;
+			}
+
+			setDrawElementBoxCoord((prevState) => {
+				let coordTemp = Object.assign({}, prevState);
+
+				coordTemp.endX = x - xTranslate;
+				coordTemp.endY = y - yTranslate;
+
+				// Needed in case rectangle is drawn from bottom-right to top-left
+				if (coordTemp.endX < coordTemp.startX) {
+					let tempX = coordTemp.endX;
+					coordTemp.endX = coordTemp.startX;
+					coordTemp.startX = tempX;
+				}
+				if (coordTemp.endY < coordTemp.startY) {
+					let tempY = coordTemp.endY;
+					coordTemp.endY = coordTemp.startY;
+					coordTemp.startY = tempY;
+				}
+
+				return coordTemp;
+			});
+			setTimeout(() => {
+				setRecordPositions(false);
+				setDrawElementBoxCoord({});
+			}, 200);
+		}
+		//console.log(drawElements)
+	};
+
+	const canvasOnClickCallbackFn = (event) => {
+		console.log(event, "recordPositions");
+
+		if (recordPositions === false && event.target.className === "canvas") {
+			setDrawElements((prevState) => {
+				console.log(prevState);
+				let temp = [...prevState];
+				temp.forEach((element) => {
+					element.isSelected = false;
+				});
+				return temp;
+			});
+			setDrawElements((prevState) => {
+				let temp = [...prevState];
+				console.log("select callback", temp);
+				const removeIndex = temp.findIndex(
+					(element) =>
+						element.type === "TEXTBOX" &&
+						element.isSelected === false &&
+						element.text === ""
+				);
+				if (removeIndex > -1) temp.splice(removeIndex, 1);
+				return temp;
+			});
+		}
+	};
+
+	return (
+		<div>
+			<div
+				className="canvas"
+				ref={canvasRef}
+				onMouseDown={(e) => onDrawingStartCallbackFn(e)}
+				onClick={(e) => canvasOnClickCallbackFn(e)}
+				onMouseUp={(e) => onDrawingEndCallbackFn(e)}
+				style={{
+					transform: "scale(" + zoom + ")",
+					transformOrigin: `${zoomCenter.x}px ${zoomCenter.y}px`,
+				}}>
+				{drawElements.map((element, index) => {
+					return (
+						<ElementFactory
+							key={index}
+							index={index}
+							props={element}
+							zoom={1}
+							xTranslate={xTranslate}
+							yTranslate={yTranslate}
+							selectCallBack={selectObjectCallBackFn}
+							updateTextCallBack={updateTextCallbackFn}
+						/>
+					);
+				})}
+			</div>
+			<FloatingToolBox
+				setObjectType={(e) => setCurrentElementType(e)}
+				setRecording={(e) => setRecordPositions(e)}
+			/>
+		</div>
+	);
 }
 
-export default Canvas
+export default Canvas;

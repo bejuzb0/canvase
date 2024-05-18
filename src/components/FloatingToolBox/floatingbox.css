@@ -1,12 +1,21 @@
 .floating-box {
-    position: fixed;
-    height: fit-content;
-    padding: 0.5em;
-    width: 40%;
-    text-align: center;
-    bottom: 10%;
-    left: 50%;
-    transform: translate(-50%, 0);
-    background-color: grey;
+	position: fixed;
+	height: fit-content;
+	padding: 0.5em;
+	width: fit-content;
+	text-align: center;
+	bottom: 2%;
+	left: 50%;
+	border-radius: 25px;
+	z-index: 2;
+	transform: translate(-50%, 0);
+	background-color: grey;
+}
 
+.floating-box > div > button {
+	text-align: center;
+	font-family: monospace;
+	margin: 0px 10px 0px 10px;
+	padding: 3px;
+	background-color: #dfdfdf;
 }

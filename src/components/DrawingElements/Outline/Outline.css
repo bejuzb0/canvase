@@ -1,0 +1,9 @@
+.outline-shape {
+	position: absolute;
+	top: 0%;
+	left: 0%;
+	height: -webkit-fill-available;
+	width: -webkit-fill-available;
+	border: 2px solid rgb(34, 211, 246);
+	z-index: -1;
+}

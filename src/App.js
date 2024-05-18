@@ -1,14 +1,13 @@
-import './App.css';
-import Canvas from './components/Canvas/canvas';
+import React from "react";
+import "./App.css";
+import Canvas from "./components/Canvas/canvas";
 
 function App() {
-  return (
-    <div className="App">
-      <Canvas/>
-
-      
-    </div>
-  );
+	return (
+		<div className="App">
+			<Canvas />
+		</div>
+	);
 }
 
 export default App;
