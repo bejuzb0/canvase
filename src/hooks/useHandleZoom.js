@@ -11,7 +11,6 @@ function useHandleZoom(mousePos, scrollCheck = true, keyboardCheck = true) {
 		switch (e.key) {
 			case "+":
 			case "=":
-				
 				setZoomCenter({
 					x: mousePos.x / zoom,
 					y: mousePos.y / zoom,
@@ -23,7 +22,6 @@ function useHandleZoom(mousePos, scrollCheck = true, keyboardCheck = true) {
 				break;
 
 			case "-":
-				console.log(mousePos);
 				setZoomCenter({
 					x: mousePos.x / zoom,
 					y: mousePos.y / zoom,
@@ -47,15 +45,12 @@ function useHandleZoom(mousePos, scrollCheck = true, keyboardCheck = true) {
 				e.preventDefault();
 				zoomBasedOnKey(e);
 			} else if (e.ctrlKey === false && e.metaKey === false) {
-				console.log("Custom zoom", e);
 				zoomBasedOnKey(e);
 			}
 		};
 
 		const handleWheelZoom = (e) => {
 			if (scrollCheck && e.ctrlKey) {
-				console.log(e);
-				console.log("Prevented zoom 2");
 				e.preventDefault();
 				if (e.deltaY > 0) {
 					setZoom((prev) => Math.max(MIN_ZOOM, prev - 0.02));

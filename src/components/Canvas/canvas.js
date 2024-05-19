@@ -8,33 +8,35 @@ import useMouseTracking from "../../hooks/useMouseTracking";
 import useObjectRenderAndDelete from "../../hooks/useObjectRenderAndDelete";
 
 function Canvas() {
-	const [drawElements, setDrawElements] = useState([]);
-	const [recordPositions, setRecordPositions] = useState(false);
+	const [drawingObjectList, setDrawingObjectList] = useState([]); // List of objects to be drawn on the canvas
+	const [recordPositions, setRecordPositions] = useState(false); // Flag to denote if drawing is in progress
 	const [currentElementType, setCurrentElementType] = useState("RECTANGLE");
-	const [drawElementBoxCoord, setDrawElementBoxCoord] = useState({});
+	const [currentObjectBox, setCurrentObjectBox] = useState({}); // To store the type, coordinates, text and selection status of the current object
 
 	const canvasRef = useRef(null);
-	const mousePos = useMouseTracking(canvasRef);
+	const mousePos = useMouseTracking(canvasRef); // Custom hook to track mouse position, used during zoom
 
-	const [zoom, zoomCenter] = useHandleZoom(mousePos);
-	const [xTranslate, yTranslate] = useHandleScrollTranslation();
+	const [zoom, zoomCenter] = useHandleZoom(mousePos); // Custom hook to prevent default zoom on Cmd + "+/-" and pinch and apply custom zoom logic
+	const [xTranslate, yTranslate] = useHandleScrollTranslation(); // Custom hook to handle canvas translation on scroll
 
 	useObjectRenderAndDelete(
-		setDrawElements,
+		setDrawingObjectList,
 		currentElementType,
-		drawElementBoxCoord
+		currentObjectBox
 	);
 
+	//Event Handler function to update text for the textbox in list
 	const updateTextCallbackFn = (elementIndex, text) => {
-		setDrawElements((prevState) => {
+		setDrawingObjectList((prevState) => {
 			let temp = [...prevState];
 			temp[elementIndex].text = text;
 			return temp;
 		});
 	};
 
+	//Event Handler function to select an object in the list and hence "highlight" it
 	const selectObjectCallBackFn = (data) => {
-		setDrawElements((prevState) => {
+		setDrawingObjectList((prevState) => {
 			let temp = [...prevState];
 			temp.forEach((element) => {
 				element.isSelected = false;
@@ -43,9 +45,8 @@ function Canvas() {
 			return temp;
 		});
 
-		setDrawElements((prevState) => {
+		setDrawingObjectList((prevState) => {
 			let temp = [...prevState];
-			console.log("select callback", temp);
 			const removeIndex = temp.findIndex(
 				(element) =>
 					element.type === "TEXTBOX" &&
@@ -57,11 +58,11 @@ function Canvas() {
 		});
 	};
 
+	//Event Handler function to start drawing an object
 	const onDrawingStartCallbackFn = (event) => {
-		//event.preventDefault();
 		if (recordPositions) {
 			// Deselect if anything is already selected
-			setDrawElements((prevState) => {
+			setDrawingObjectList((prevState) => {
 				let temp = [...prevState];
 				const selectedIdx = temp.findIndex(
 					(element) => element.isSelected
@@ -74,7 +75,7 @@ function Canvas() {
 			let y = mousePos.y;
 			x = x / zoom;
 			y = y / zoom;
-			setDrawElementBoxCoord((prevState) => {
+			setCurrentObjectBox((prevState) => {
 				return {
 					...prevState,
 					startX: x - xTranslate,
@@ -84,6 +85,7 @@ function Canvas() {
 		}
 	};
 
+	//Event handler function to end drawing an object
 	const onDrawingEndCallbackFn = (event) => {
 		event.preventDefault();
 		if (recordPositions) {
@@ -92,11 +94,12 @@ function Canvas() {
 			x = x / zoom;
 			y = y / zoom;
 
+			// For textbox, the object height is fixed at 30px initially and adjusted later based on text.
 			if (currentElementType === "TEXTBOX") {
-				y = drawElementBoxCoord.startY + 30;
+				y = currentObjectBox.startY + 30;
 			}
 
-			setDrawElementBoxCoord((prevState) => {
+			setCurrentObjectBox((prevState) => {
 				let coordTemp = Object.assign({}, prevState);
 
 				coordTemp.endX = x - xTranslate;
@@ -118,27 +121,25 @@ function Canvas() {
 			});
 			setTimeout(() => {
 				setRecordPositions(false);
-				setDrawElementBoxCoord({});
+				setCurrentObjectBox({});
 			}, 200);
 		}
-		//console.log(drawElements)
 	};
 
+	//Callback function to handle click on canvas. Deselect any object if clicked outside the object and remove empty textboxes
 	const canvasOnClickCallbackFn = (event) => {
-		console.log(event, "recordPositions");
-
 		if (recordPositions === false && event.target.className === "canvas") {
-			setDrawElements((prevState) => {
-				console.log(prevState);
+			setDrawingObjectList((prevState) => {
 				let temp = [...prevState];
 				temp.forEach((element) => {
 					element.isSelected = false;
 				});
 				return temp;
 			});
-			setDrawElements((prevState) => {
+
+			setDrawingObjectList((prevState) => {
 				let temp = [...prevState];
-				console.log("select callback", temp);
+
 				const removeIndex = temp.findIndex(
 					(element) =>
 						element.type === "TEXTBOX" &&
@@ -163,13 +164,13 @@ function Canvas() {
 					transform: "scale(" + zoom + ")",
 					transformOrigin: `${zoomCenter.x}px ${zoomCenter.y}px`,
 				}}>
-				{drawElements.map((element, index) => {
+				{drawingObjectList.map((element, index) => {
 					return (
 						<ElementFactory
 							key={index}
 							index={index}
 							props={element}
-							zoom={1}
+							zoom={1} // Initially this was used to change top, height, width, left of objects based on zoom, later transitioned to canvas scaling based zoom so this is set to 1. (Can be removed )
 							xTranslate={xTranslate}
 							yTranslate={yTranslate}
 							selectCallBack={selectObjectCallBackFn}

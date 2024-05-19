@@ -1,9 +1,9 @@
 import { useEffect } from "react";
 
 function useObjectRenderAndDelete(
-	setDrawElements,
+	setDrawingObjectList,
 	currentElementType,
-	drawElementBoxCoord
+	currentObjectBox
 ) {
 	/**
 	 * This hook is used only for deleting objects on "Backspace/Delete"(on mac) and Rendering any object once it's been added to the object list
@@ -12,11 +12,10 @@ function useObjectRenderAndDelete(
 
 	const handleObjectDeletion = (event) => {
 		if (document.activeElement.className !== "textbox-textarea") {
-			
 			switch (event.key) {
 				case "Backspace":
 				case "Delete":
-					setDrawElements((prevState) => {
+					setDrawingObjectList((prevState) => {
 						let temp = [...prevState];
 						const removeIndex = temp.findIndex(
 							(element) => element.isSelected
@@ -38,20 +37,20 @@ function useObjectRenderAndDelete(
 	}, []);
 
 	useEffect(() => {
-		if (drawElementBoxCoord.endX !== undefined) {
-			setDrawElements((prevState) => {
+		if (currentObjectBox.endX !== undefined) {
+			setDrawingObjectList((prevState) => {
 				return [
 					...prevState,
 					{
 						type: currentElementType,
-						coords: drawElementBoxCoord,
+						coords: currentObjectBox,
 						text: "",
 						isSelected: true,
 					},
 				];
 			});
 		}
-	}, [drawElementBoxCoord]);
+	}, [currentObjectBox]);
 }
 
 export default useObjectRenderAndDelete;
