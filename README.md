@@ -1,4 +1,4 @@
-#Overview
+##Overview
 
 Canvase is a specialized wireframing application built with React that enables users to create low-fidelity UI mockups on an extensible digital canvas. The project emphasizes a modular architecture, prioritizing the decoupling of canvas state, object-specific logic, and interaction handlers to ensure the system is easily scalable for future feature sets.
 
