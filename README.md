@@ -5,7 +5,7 @@ Canvase is a specialized wireframing application built with React that enables u
 
 To maximize accessibility and styling flexibility, Canvase is implemented using a DOM-centric approach (<div>-based rendering) rather than the standard <canvas> API. This allows for granular control over element outlines and selection states using absolute-positioned UI overlays.
 
-###Key Technical Features
+### Key Technical Features
 
 *Dynamic Object Instantiation*: Tools selected from a custom toolbox allow users to define object dimensions via precise click-and-drag coordinates.
 *Intelligent Text Scaling*: Text objects dynamically adjust their dimensions to match content and feature an auto-cleanup mechanism that prunes empty, unselected elements from the state.
