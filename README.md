@@ -8,9 +8,13 @@ To maximize accessibility and styling flexibility, Canvase is implemented using 
 ### Key Technical Features
 
 *Dynamic Object Instantiation*: Tools selected from a custom toolbox allow users to define object dimensions via precise click-and-drag coordinates.
+
 *Intelligent Text Scaling*: Text objects dynamically adjust their dimensions to match content and feature an auto-cleanup mechanism that prunes empty, unselected elements from the state.
+
 *Multi-Modal Navigation*: Sophisticated zoom functionality supporting pinch-to-zoom , keyboard-driven scaling ($Ctrl+/-$) , and cursor-localized zooming.
+
 *Modular Architecture*: Engineered with a strict focus on decoupling object logic from the core canvas and state management to facilitate the easy addition of new object types.
+
 
 ## Run Instruction
 
